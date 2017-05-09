@@ -1,2 +1,2 @@
-# js-has-power-starter
-JS Has Power - level starter
+# js-has-power-regular
+JS Has Power Regular
