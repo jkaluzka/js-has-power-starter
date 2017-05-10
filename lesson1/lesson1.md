@@ -313,7 +313,7 @@ Jest wygodną formą zapisu wartości nowych obiektów.
 ```
   var flight = {
     airline: "Oceanic",
-    number: 888.
+    number: 888,
     departure: {
       IAA: "WAR",
       time: "2017-04-21 15:55",
