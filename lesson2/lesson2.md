@@ -136,12 +136,105 @@ Kiedy stosować **curry**? Jeżeli daną funkcje wywołuje się wielokrotnie w w
 
 ### chaining
 
+Wzorzec łańcucha wywoałń umożliwia umożliwia wywoływanie metod obiektu jednej po drugiej bez potrzeby przypisywanie zwracanych wartości poprzednich operacji i bez konieczności dzielienia wywoałań na kilka wiersy.
+
+```
+mojObiek.metoda1(arg).metoda2(arg).metoda3(arg);
+```
+
+Aby waszła możliwość, aby zaszła możliwość łączenia metod w łańcuch, metody powinny zwracać aktualną wartość `this`. czyli instancję obiektu, na którym aktualnie operują.
+
+```
+var obiekt = {
+    value: 1,
+    zwieksz: function() {
+        this.value += 1;
+        return this;
+    },
+    zmniejsz: function() {
+        this.valie -= 1;
+        return this;
+    },
+    pokaz: function() {
+        alert(this.value);
+    }
+};
+
+obiekt.zwieksz().zwieksz().zmnieksz().pokaz(); // 1
+
+// lub
+
+obiekt.zwieksz()
+obiekt.zwieksz()
+obiekt.zmnieksz()
+obiekt.pokaz()
+```
+
+## [DOM](https://developer.mozilla.org/pl/docs/)
+
+### Czym jest, a czym nie jest?
+
+Document Object Model (Model Obiektowy Dokumentu) - to API dla dokumentów HTML i XML. Zapawnia ono strukturalną reprezentację dokumentu, pozwalając ma modyfikacje jego zawartści i wizualnej prezentacji. DOM wizualną reprezentacje ze skryptami / językami. Zaimplementowany jest poza rdzeniem interpretera JS przez co jest źródłem problemów z wydajnością, ale może on być wykorzystywany przez wiele języków (np. VBScript w IE). Różne przeglądarki różnią się implementacją DOM, implementacje wykazują rózny stopień zgodzności z faktycznym standardem DOM.
+
+### window, document, element
+
+Obiekty `window` i `document` to obiekty, których interfejsy będziesz najczęściej wykorzystywał w programowaniu przy użyciu DOM. W prostych słowach, `window` reprezentuje coś takiego jak przeglądarka, zaś `document` jest początkiem całego dokumentu. `Element` dziedziczy z ogólnego interfejsu `Node`, zaś razem te dwa interfejsy odpowiadają za wiele metod i własności, jakich będziesz używał na konkretnych elementach.
+
+### Jak korzystac?
+
+Ogólna reguła jest taka: ograniczyć wykorzystanie DOM do minimum
+
+* unikać uzyskiwania dostępu do DOM w pętli
+* przypisywać referencje DOM do lokalnych zmiennych i korzystać z wersji lokalnych
+* wykorzystywać API selectorów CSS, jeśli tylko dostępne
+* zapamiętywać własność `length` w trakcie iteracji przez kolejne węzły (nody) HTML
 
 
-## DOM
+```
+// #1
+for (var i=0; i<100; i+=1) {
+    document.getElementById('result').innerHTML += i + ', ';
+}
 
-* czym jest, a czym nie jest?
-* jak korzystac?
-* manipulacja
-* window, document
-* https://developer.mozilla.org/pl/docs/DOM
+#2
+var i, content = '';
+for (i=0; i<100; i+=1) {
+    content += i + ', ';
+}
+document.getElementById('result').innerHTML += content;
+```
+
+### Manipulacja
+
+Aktualizacja węzłów DOM powoduje **przerysowanie** zmodyfikowanej części ekranu, a czasem również **przeliczenie** geometrii elementów, co nierzadko jest kosztowne. Określmy zatem zasadę ogólną: należy wykonywać jak najmniej aktualizacji DOM, czyli przeprowadzać je w dużych grupach, najlepiej poza aktualnie renderowanym drzewem lub najlepiej w pamięci i dodać je na samy końcu całego procesu.
+
+```
+var p, t;
+
+p = document.createElement('p');
+t = docuemnt.createTextNode('pierwszy paragraf');
+p.appendChild(t);
+document.body.appendChild(p);
+
+p = document.createElement('p');
+t = docuemnt.createTextNode('kolejny paragraf');
+p.appendChild(t);
+document.body.appendChild(p);
+```
+
+```
+var p, t, frag;
+
+frag = document.createDocumentFragment();
+p = document.createElement('p');
+t = docuemnt.createTextNode('pierwszy paragraf');
+p.appendChild(t);
+frag.appendChild(p);
+
+p = document.createElement('p');
+t = docuemnt.createTextNode('kolejny paragraf');
+p.appendChild(t);
+frag.appendChild(p);
+
+document.body.appendChild(frag);
+```
