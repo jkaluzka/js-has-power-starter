@@ -3,6 +3,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="lib/lodash.js"></script>
     <script src="lib/jshp.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
@@ -13,27 +14,13 @@
         <p>Demo</p>
         <div class="table-container">
             <table class="table">
-                <thead class="table-head">
-                    <tr>
-                        <th class="sortable">#</th>
-                        <th>First name</th>
-                        <th>Last name</th>
-                        <th>Email</th>
-                        <th>Age</th>
-                        <th>Job title</th>
-                    </tr>
-                </thead>
+                <thead></thead>
                 <tbody class="table-filter">
                     <tr>
                         <td colspan="6"><input type="text" name="table-query" class="table-query" /></td>
                     </tr>
                 </tbody>
-                <tbody class="table-body">
-                    <tr>
-                        <td>1</td>
-                        <td>2</td>
-                    </tr>
-                </tbody>
+                <tbody class="table-body"></tbody>
             </table>
             <div class="table-footer"></div>
         </div>

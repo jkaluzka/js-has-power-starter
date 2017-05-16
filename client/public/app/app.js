@@ -1,10 +1,12 @@
 function tableObject(element, config) {
     var data = [];
+    var cfg = null;
 
     function init() {
+        cfg = config;
         jshp.empty(element);
         var tr = jshp.create('tr');
-        config.map(function(column) {
+        cfg.map(function(column) {
             var th = jshp.create('th');
             jshp.text(th, column.title);
             jshp.append(th, tr);
@@ -14,17 +16,20 @@ function tableObject(element, config) {
 
     init();
 
+    function insertRow(item, element) {
+        var tr = jshp.create('tr');
+        for (var i=0; i<cfg.length; i++) {
+            var td = jshp.create('td');
+            jshp.text(td, _.get(item, cfg[i].target)) //.addClass(i);
+            jshp.append(td, tr);
+        }
+        jshp.append(tr, element);
+    }
+
     function updateTable(data, element) {
-        let items = [];
         jshp.empty(element)
         data.map(function (item) {
-            var tr = jshp.create('tr');
-            for (var prop in item) {
-                var td = jshp.create('td')
-                jshp.text(td, item[prop])//.addClass(i);
-                jshp.append(td, tr);
-            }
-            jshp.append(tr, element);
+            insertRow(item, element);
         });
     }
 
@@ -52,14 +57,17 @@ function tableObject(element, config) {
 }
 
 jshp.ready(function () {
-    let bounce = null;
+    var bounce = null;
 
-    var tableBody = jshp.get('.table')[0];
+    var table = jshp.get('.table')[0];
+    var tableHeader = jshp.findChildren(table, 'thead')[0];
+    var tableBody = jshp.findChildren(table, '.table-body')[0];
     var tableConfig = [
         {
             title: '#',
             type: 'number',
-            sortable: true
+            sortable: true,
+            target: 'id',
         }, {
             title: 'Departure city',
             type: 'object',
@@ -79,29 +87,16 @@ jshp.ready(function () {
         }
     ];
 
-    var to = tableObject(tableBody, tableConfig);
+    var to = tableObject(tableHeader, tableConfig);
 
     jshp.ajax({
         method: 'GET',
         url: '//localhost:3000/flights'
     }, function (data) {
-        to.updateTable(JSON.parse(data));
+        to.updateTable(JSON.parse(data), tableBody);
     }, function (error) {
         console.log(error);
     })
-
-    // ajax
-
-    // $.ajax({
-    //     method: 'GET',
-    //     url: '//localhost:3000/flights'
-    // }).then(function(data) {
-    //     console.log(data);
-    //     tableData = data;
-    //     updateTable(
-    //         sortData(tableData, 'id')
-    //     , $tableBody);
-    // });
 
     // event
 

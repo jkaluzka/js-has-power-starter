@@ -8,6 +8,10 @@
     return element;
   };
 
+  jshp.findChildren = function(parent, selector) {
+    return parent.querySelectorAll(selector);
+  };
+
   jshp.create = function(tag) {
     var element = doc.createElement(tag);
     return element;
@@ -49,7 +53,6 @@
     }
 
     options = Object.assign({}, options, opt);
-    console.log(options);
 
     var request = new XMLHttpRequest();
     request.open(options.method, options.url, options.async);
