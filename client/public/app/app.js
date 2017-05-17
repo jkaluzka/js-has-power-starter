@@ -24,6 +24,10 @@ function tableObject(element, config) {
             if (cfg[i].className) {
               jshp.addClass(td, cfg[i].className)
             }
+            for (var attr in cfg[i].attrs) {
+                var attrValue = _.get(item, cfg[i].attrs[attr])
+                jshp.setAttr(td, attr, attrValue);
+            }
             jshp.append(td, tr);
         }
         jshp.append(tr, element);
@@ -59,6 +63,10 @@ function tableObject(element, config) {
     }
 }
 
+function errorHandler(error) {
+    console.log(error);
+}
+
 jshp.ready(function () {
     var bounce = null;
 
@@ -76,6 +84,8 @@ jshp.ready(function () {
             title: 'Departure city',
             type: 'object',
             target: 'departure.city',
+            className: 'departure',
+            attrs: {id: 'departure.id'},
         }, {
             title: 'Departure time',
             type: 'object',
@@ -84,6 +94,8 @@ jshp.ready(function () {
             title: 'Arrival city',
             type: 'object',
             target: 'arrival.city',
+            className: 'arrival',
+            attrs: {id: 'arrival.id'},
         }, {
             title: 'Arrival time',
             type: 'object',
@@ -97,14 +109,18 @@ jshp.ready(function () {
 
     var to = tableObject(tableHeader, tableConfig);
 
-    jshp.ajax({
-        method: 'GET',
+    jshp.ajaxGet({
         url: '//localhost:3000/flights'
     }, function (data) {
-        to.updateTable(JSON.parse(data), tableBody);
-    }, function (error) {
-        console.log(error);
-    })
+      to.updateTable(JSON.parse(data), tableBody);
+      var elems = jshp.get('td.arrival, td.departure');
+      for (var i = 0; i < elems.length; i++) {
+        var elem = elems[i];
+        jshp.on(elem, 'click', function () {
+          window.location = '//localhost:3000/airports/' + jshp.getAttr(this, 'id');
+        });
+      }
+    }, errorHandler)
 
     // event
 

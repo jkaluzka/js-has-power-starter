@@ -15,7 +15,7 @@ function generateData () {
   var airlines = [],
       flights = [],
       airports = [];
-  var id = 1;
+  var id;
 
   for (id = 1; id <= 10; id++) {
     airlines.push({

@@ -30,6 +30,26 @@
     element.classList.add(className);
   };
 
+  jshp.removeClass = function(element, className) {
+    element.classList.remove(className);
+  };
+
+  jshp.setAttr = function (element, attrName, attrValue) {
+    element.setAttribute(attrName, attrValue);
+  };
+
+  jshp.getAttr = function (element, attrName) {
+    return element.getAttribute(attrName);
+  };
+
+  jshp.toggleClass = function (element, classValue) {
+    if (element.classList.contains(classValue)) {
+      jshp.removeClass(element, classValue);
+    } else {
+      jshp.addClass(element, classValue);
+    }
+  };
+
   jshp.empty = function(element) {
     element.innerHTML = '';
   };
@@ -42,9 +62,18 @@
     }
   };
 
+  // support for events
+  jshp.on = function(element, event, callback) {
+    element.addEventListener(event, callback);
+  }
+
+  jshp.off = function(element, eventName, eventHandler) {
+    element.removeEventListener(eventName, eventHandler);
+  }
+
+  // support for ajax
   jshp.ajax = function(options, handleSuccess, handleError) {
     var opt = {
-      method: 'GET',
       async: true
     };
 
@@ -76,6 +105,16 @@
 
     request.send();
   };
+
+  jshp.ajaxGet = function (options, handleSuccess, handleError) {
+    var opts = Object.assign({}, options, {method: 'GET'});
+    jshp.ajax(opts, handleSuccess, handleError);
+  }
+
+  jshp.ajaxPost = function (options, handleSuccess, handleError) {
+    var opts = Object.assign({}, options, {method: 'POST'});
+    jshp.ajax(opts, handleSuccess, handleError);
+  }
 
   function top() {
     var s = 'world';
