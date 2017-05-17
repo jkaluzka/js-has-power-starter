@@ -20,7 +20,10 @@ function tableObject(element, config) {
         var tr = jshp.create('tr');
         for (var i=0; i<cfg.length; i++) {
             var td = jshp.create('td');
-            jshp.text(td, _.get(item, cfg[i].target)) //.addClass(i);
+            jshp.text(td, _.get(item, cfg[i].target))
+            if (cfg[i].className) {
+              jshp.addClass(td, cfg[i].className)
+            }
             jshp.append(td, tr);
         }
         jshp.append(tr, element);
@@ -68,6 +71,7 @@ jshp.ready(function () {
             type: 'number',
             sortable: true,
             target: 'id',
+            className: 'bold',
         }, {
             title: 'Departure city',
             type: 'object',
@@ -84,7 +88,11 @@ jshp.ready(function () {
             title: 'Arrival time',
             type: 'object',
             target: 'arrival.time',
-        }
+        }, {
+            title: 'Airline',
+            type: 'object',
+            target: 'airline.name'
+      }
     ];
 
     var to = tableObject(tableHeader, tableConfig);

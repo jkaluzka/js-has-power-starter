@@ -14,6 +14,10 @@ p {
  margin-bottom: 10px;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 .container {
  font-size: 17px;
  margin: 20px auto;
