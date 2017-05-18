@@ -42,6 +42,14 @@
     return element.getAttribute(attrName);
   };
 
+  jshp.attr = function(element, attrName, attrValue) {
+    if (attrValue) {
+      jshp.setAttr(element, attrName, attrValue);
+    } else {
+      return jshp.getAttr(element, attrName);
+    }
+  }
+
   jshp.toggleClass = function (element, classValue) {
     if (element.classList.contains(classValue)) {
       jshp.removeClass(element, classValue);
@@ -99,8 +107,8 @@
       }
     }
 
-    request.onerror = function(xxx) {
-      console.log(xxx);
+    request.onerror = function(error) {
+      console.error(error);
     };
 
     request.send();
@@ -121,6 +129,6 @@
     return function(name) {
       alert(name + s);
     }
-  };
+  }
 
 })(window.jshp = window.jshp || {});

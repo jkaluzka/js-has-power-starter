@@ -85,3 +85,11 @@ p {
 .table-body tr:hover {
     background-color: #CCCCCC;
 }
+
+.pagi-cont {
+	list-style-type: none;
+}
+
+.pagi-item {
+	display: inline-block;
+}
