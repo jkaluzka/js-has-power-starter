@@ -43,7 +43,7 @@ function paginationObject() {
     }
 
     function selectPage(pageNumber) {
-        if (pageNumber > 0) {
+        if (pageNumber >= 0) {
             page = pageNumber
         }
         fireEvent('onPageChange');
