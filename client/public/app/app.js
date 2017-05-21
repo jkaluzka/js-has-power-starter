@@ -36,7 +36,7 @@ function paginationObject() {
 
     function prevPage(by) {
         if ((page-by) < 0) {
-            page = 0;;
+            page = 0;
         } else {
             page -= by;
         }

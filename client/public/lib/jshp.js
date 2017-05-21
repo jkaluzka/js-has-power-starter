@@ -92,26 +92,28 @@
     options = Object.assign({}, options, opt);
 
     var request = new XMLHttpRequest();
+    request.onreadystatechange = handleData;
     request.open(options.method, options.url, options.async);
+    if (options.method.toUpperCase() === 'POST') {
+      request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    }
+    request.send();
 
-    request.onload = function() {
-      if (request.status >= 200 && request.status < 400) {
-        var resp = request.responseText;
-        if (typeof handleSuccess === 'function') {
-          handleSuccess(resp);
-        }
-      } else {
-        if (typeof handleError === 'function') {
-          handleError(resp);
+    function handleData() {
+      if (request.readyState === XMLHttpRequest.DONE) {
+        var data = request.responseText;
+        if (request.status === 200) {
+          if (typeof handleSuccess === 'function') {
+            handleSuccess(data);
+          }
+        } else {
+          if (typeof handleError === 'function') {
+            handleError(data);
+          }
         }
       }
     }
 
-    request.onerror = function(error) {
-      console.error(error);
-    };
-
-    request.send();
   };
 
   jshp.ajaxGet = function (options, handleSuccess, handleError) {
