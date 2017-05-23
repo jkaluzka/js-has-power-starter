@@ -1,9 +1,14 @@
-/*global affix, jshp*/
+/*global affix, selector*/
 
-// Tests
 describe("JavaScriptHasPower", function() {
+  'use strict';
+
   beforeEach(function() {
     affix(".element $element");
+  });
+
+  afterEach(function() {
+    $('.element').remove();
   });
 
   it("should not return element", function() {
@@ -17,9 +22,10 @@ describe("JavaScriptHasPower", function() {
     var selector = '.element';
     var expected = $.makeArray($(selector));
     var el = jshp.get(selector);
+
     expect(el.length).toBe(1);
     expect(el[0] instanceof HTMLElement).toBe(true);
     expect(el[0]).toBe(expected[0]);
-  })
+  });
 
 });

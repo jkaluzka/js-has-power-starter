@@ -4,8 +4,7 @@
 
   // Public methods
   jshp.get = function(selector) {
-    var element = doc.querySelectorAll(selector);
-    return element;
+    return doc.querySelectorAll(selector);
   };
 
   jshp.findChildren = function(parent, selector) {
