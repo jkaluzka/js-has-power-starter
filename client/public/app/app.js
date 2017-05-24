@@ -4,6 +4,7 @@ function paginationObject() {
     var pageCount = -1;
     var countPerPage = 10;
     var totalCount = -1;
+    var selectElement;
 
     var configuration = {
         _containerClass: 'pagi-cont',
@@ -27,24 +28,40 @@ function paginationObject() {
     }
 
     function nextPage(by) {
-        if ((page+by) > pageCount) {
-            page = pageCount;
+        var npage = page;
+        if ((npage + by) >= pageCount) {
+            npage = pageCount - 1;
         } else {
-            page += by
+            npage += by
         }
+        selectPage(npage);
     }
 
     function prevPage(by) {
-        if ((page-by) < 0) {
-            page = 0;
+        var npage = page;
+        if ((npage - by) < 0) {
+            npage = 0;
         } else {
-            page -= by;
+            npage -= by;
         }
+        selectPage(npage);
+    }
+
+    function firstPage() {
+        selectPage(0);
+    }
+
+    function lastPage() {
+        selectPage(pageCount - 1);
     }
 
     function selectPage(pageNumber) {
-        if (pageNumber >= 0) {
+        pageNumber = parseInt(pageNumber, 10);
+        if (pageNumber > -1) {
             page = pageNumber
+        }
+        if (selectElement) {
+            selectElement.value = pageNumber;
         }
         fireEvent('onPageChange');
     }
@@ -69,22 +86,65 @@ function paginationObject() {
         });
     }
 
+    function createAnchor(text, callbackOnClick) {
+        var li = jshp.create('li'),
+            a = jshp.create('a');
+        jshp.addClass(li, configuration._itemClass);
+        jshp.attr(a, 'href', '#');
+        jshp.text(a, text);
+        jshp.append(a, li);
+        jshp.on(a, 'click', callbackOnClick);
+        return li;
+    }
+
+    function createSelect() {
+        var li = jshp.create('li');
+        jshp.addClass(li, configuration._itemClass);
+        selectElement = jshp.create('select');
+        jshp.attr(selectElement, 'name', 'pageNumber');
+        jshp.on(selectElement, 'change', function(event) {
+            event.preventDefault();
+            selectPage(event.target.value);
+        });
+        Array.apply(null, Array(pageCount)).map(function(_, idx) {
+            var optionElement = jshp.create('option');
+            jshp.attr(optionElement, 'value', idx);
+            jshp.text(optionElement, idx+1);
+            jshp.append(optionElement, selectElement);
+        });
+        jshp.append(selectElement, li);
+        return li;
+    }
+
     function render(target) {
         var container = jshp.create(configuration.containerElement);
         jshp.addClass(container, configuration._containerClass);
-        Array.apply(null, Array(pageCount)).map(function(_, idx) {
-            var item = jshp.create(configuration.itemElement);
-            jshp.addClass(item, configuration._itemClass);
-            var link = jshp.create('a');
-            jshp.attr(link, 'href', '#');
-            jshp.text(link, idx+1);
-            jshp.on(link, 'click', function(event) {
-                event.preventDefault();
-                selectPage(idx);
-            });
-            jshp.append(link, item);
-            jshp.append(item, container);
+        var firstPageItem = createAnchor('<<', function(event) {
+            event.preventDefault();
+            firstPage();
         });
+        var lastPageItem = createAnchor('>>', function(event) {
+            event.preventDefault();
+            lastPage();
+        });
+        var prevPageItem = createAnchor('<', function(event) {
+            event.preventDefault();
+            prevPage(1);
+        });
+        var nextPageItem = createAnchor('>', function(event) {
+            event.preventDefault();
+            nextPage(1);
+        });
+        var selectElementItem = createSelect();
+        //
+        jshp.append(firstPageItem, container);
+        jshp.append(prevPageItem, container);
+        //
+        jshp.append(selectElementItem, container);
+        //
+        jshp.append(nextPageItem, container);
+        jshp.append(lastPageItem, container);
+        //
         jshp.append(container, target);
     }
 
@@ -97,7 +157,6 @@ function paginationObject() {
         select: selectPage,
         render: render,
         onPageChange: onPageChange,
-        update: function() {}
     }
 }
 

@@ -60,12 +60,12 @@ p {
 
 .table-filter td {
     text-align: right;
-    padding: 14px 10px;
+    padding: 12px 8px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1)
 }
 
 .table-head th, .table-body td {
-    padding: 14px 10px;
+    padding: 12px 8px;
     text-align: left;
 }
 
@@ -74,6 +74,7 @@ p {
 }
 
 .table-body td {
+	height: 75px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -88,8 +89,16 @@ p {
 
 .pagi-cont {
 	list-style-type: none;
+	text-align: center;
 }
 
 .pagi-item {
 	display: inline-block;
+	padding: 5px 7px;
+	height: 25px;
+}
+
+.pagi-item a {
+	text-decoration: none;
+	line-height: 25px;
 }
