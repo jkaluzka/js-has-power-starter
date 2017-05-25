@@ -117,6 +117,7 @@ function paginationObject() {
     }
 
     function render(target) {
+        jshp.empty(target);
         var container = jshp.create(configuration.containerElement);
         jshp.addClass(container, configuration._containerClass);
         var firstPageItem = createAnchor('<<', function(event) {
@@ -188,9 +189,86 @@ function tableObject(element, config) {
         });
         jshp.addClass(tr, 'table-head');
         jshp.append(tr, element);
+        initModal();
     }
 
     init();
+
+    function initModal() {
+        var _airports, _airlines;
+        var modal = jshp.get('#modal')[0];
+        jshp.addListener(jshp.get('#addFlight')[0], 'click', function () {
+            jshp.css(modal, 'display', 'block');
+            jshp.ajaxGet({url: '/airports'}, function (data) {
+                _airports = data;
+                var ports = data.map(function (a) {
+                    return Object.assign({}, a, {name: a.city + ' [' + a.IAA + ']'});
+                })
+                insertOptions('dept_city', ports);
+                insertOptions('arrival_city', ports);
+            }, errorHandler)
+            jshp.ajaxGet({url: '/airlines'}, function (data) {
+                _airlines = data
+                insertOptions('airline', _airlines);
+            }, errorHandler)
+        });
+
+        jshp.addListener(jshp.get('span.close')[0], 'click', function () {
+            jshp.css(modal, 'display', 'none');
+        });
+
+        Array.prototype.forEach.call(jshp.get('button.time'), function (button) {
+            jshp.addListener(button, 'click', function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+                var elem = jshp.get('input[name="' + jshp.getAttr(this, 'data-for') + '"]')[0];
+                elem.value = new Date().toISOString();
+            });
+        });
+
+        jshp.addListener(jshp.get('#modal .submit')[0], 'click', function () {
+            event.stopPropagation();
+            event.preventDefault();
+            var airline = _getSelectedValue('select[name="airline"]', _airlines);
+
+            var departure = _getSelectedValue('select[name="dept_city"]', _airports);
+            departure.time = jshp.get('input[name="dept_time"]')[0].value
+
+            var arrival = _getSelectedValue('select[name="arrival_city"]', _airports);
+            arrival.time = jshp.get('input[name="arrival_time"]')[0].value
+
+            var payload = {airline: airline, departure: departure, arrival: arrival}
+            jshp.ajaxPost({url: '/flights', data: payload}, function (response) {
+                jshp.css(modal, 'display', 'none');
+                data.push(response);
+                updateTable(data, jshp.findChildren(jshp.get('.table')[0], '.table-body')[0]);
+            }, errorHandler);
+        })
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
+
+    function _getSelectedValue(name, data) {
+        var element = jshp.get(name)[0]
+        return data.filter(function (a) {
+            return a.id === parseInt(element.options[element.selectedIndex].value, 10);
+        })[0]
+    }
+
+    function insertOptions(name, options) {
+        var selectElement = jshp.get('select[name=' + name + ']')[0];
+        options.map(function(option) {
+            var optionElement = jshp.create('option');
+            jshp.attr(optionElement, 'value', option.id);
+            jshp.text(optionElement, option.name);
+            jshp.append(optionElement, selectElement);
+        })
+    }
 
     function insertRow(item, element) {
         var tr = jshp.create('tr');
@@ -217,12 +295,12 @@ function tableObject(element, config) {
 
     function updateTable(newData, element) {
         data = newData;
-        //reset
+        // reset element
         jshp.empty(element);
         po.select(0);
-        // set
+        // set list of all pages
         po.total(data.length);
-        // update
+        // draw footer with pagination
         po.render(tfoot);
     }
 
@@ -245,12 +323,12 @@ function tableObject(element, config) {
     }
 
     return {
-        updateTable: updateTable
+        updateTable: updateTable,
     }
 }
 
 function errorHandler(error) {
-    console.log(error);
+    console.error(error);
 }
 
 jshp.ready(function () {
@@ -298,7 +376,7 @@ jshp.ready(function () {
     jshp.ajaxGet({
         url: '//localhost:3000/flights'
     }, function (data) {
-      to.updateTable(JSON.parse(data), tableBody);
+      to.updateTable(data, tableBody);
       var elems = jshp.get('td.arrival, td.departure');
       for (var i = 0; i < elems.length; i++) {
         var elem = elems[i];

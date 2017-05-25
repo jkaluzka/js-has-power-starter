@@ -16,6 +16,7 @@
                 <thead></thead>
                 <tbody class="table-filter">
                     <tr>
+                        <td colspan="2"><button id="addFlight">add flight!</button></td>
                         <td colspan="6"><input type="text" name="table-query" class="table-query" /></td>
                     </tr>
                 </tbody>
@@ -28,6 +29,41 @@
             </table>
             <div class="table-footer"></div>
         </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="modal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <form action="">
+          <ul>
+            <li>
+              <label for="dept_city">Departure city:</label>
+              <select name="dept_city"></select>
+            </li>
+            <li>
+              <label for="dept_time">Departure time:</label>
+              <input type="text" name="dept_time"><button class='time' data-for="dept_time">now</button><br>
+            </li>
+            <li>
+              <label for="arrival_city">Arrival city:</label>
+              <select name="arrival_city"></select>
+            </li>
+
+            <li>
+              <label for="arrival_time">Arrival time:</label>
+              <input type="text" name="arrival_time"><button class='time' data-for="arrival_time">now</button><br>
+            </li>
+
+            <li>
+              <label for="airline">Airline:</label>
+              <select name="airline"></select>
+            </li>
+            <li><input type="submit" value="Submit" class="submit"></li>
+          </ul>
+        </form>
+      </div>
     </div>
     <script src="app/app.js"></script>
 </body>
