@@ -1,3 +1,136 @@
+function eventDispatcher() {
+    var events = {};
+
+    return function getOrCreate(name) {
+        if (!events[name]) {
+            events[name] = {};
+        }
+        eventStore = events[name];
+        return {
+            eventStore: eventStore,
+            register: function register(eventName, callback) {
+                if (!this.eventStore[eventName]) {
+                    this.eventStore[eventName] = [];
+                }
+                if (typeof callback === 'function') {
+                    this.eventStore[eventName].push(callback);
+                }
+            },
+            fire: function fire(eventName, args) {
+                if (!this.eventStore[eventName]) return;
+                this.eventStore[eventName].map(function (callback) {
+                    if (typeof callback === 'function') {
+                        callback(args);
+                    }
+                });
+            },
+        }
+    }
+}
+
+window.eventDispatcher = eventDispatcher();
+
+function dataStore(data) {
+    var store = {
+        totalCount: 0,
+        primary: data,
+        cache: []
+    };
+    var filterOptions = {
+        query: '',
+        properties: []
+    };
+    var limitOptions = {
+        limit: 10,
+        offset: 0
+    };
+
+    function setFilter(query, properties) {
+        newFilterOptions = {
+            query: query,
+            properties: properties
+        };
+        filterOptions = Object.assign({}, filterOptions, newFilterOptions);
+        return this;
+    }
+
+    function setLimit(limit, offset) {
+        newLimitOptions = {
+            limit: limit,
+            offset: offset
+        };
+        limitOptions = Object.assign({}, limitOptions, newLimitOptions);
+        return this;
+    }
+
+    function getSorter(type) {
+        switch(type) {
+            case 'number':
+                return function(a, b) {
+                    return a > b ? 1 : -1;
+                }
+            case 'date':
+                return function(a, b) {
+                    return (new Date(a)).getTime() > (new Date(b)).getTime() ? 1 : -1;
+                }
+            default:
+            case 'string':
+                return function(a, b) {
+                    return a.toLowerCase() > b.toLowerCase() ? 1 : -1;
+                }
+        }
+    }
+
+    function setSort(property, direction, type) {
+        type = type || 'string';
+        direction = direction || 1;
+        var sorter = getSorter(type);
+        store.cache = store.primary.sort(function (a, b) {
+            return sorter(getProp(a, property), getProp(b, property)) * direction;
+        });
+        return this;
+    }
+
+    function get() {
+        var retData = !store.cache.length ? store.primary : store.cache;
+        store.totalCount = retData.length;
+
+        function test(obj, fields, needle) {
+            var status = false;
+            var statuses = fields.map(function(path) {
+                return getProp(obj, path).toLowerCase().indexOf(needle.toLowerCase()) > -1;
+            });
+            status = statuses.reduce(function (a, b) {
+                return a || b;
+            }, status);
+            return status;
+        }
+
+        retData = retData.filter(function (item, idx) {
+            if (!filterOptions.query || !filterOptions.properties) { return item; }
+            return test(item, filterOptions.properties, filterOptions.query);
+        });
+
+        store.totalCount = retData.length;
+
+        retData = retData.slice(limitOptions.offset, (limitOptions.offset + limitOptions.limit));
+
+        return retData;
+    }
+
+    function getTotal() {
+        return store.totalCount;
+    }
+
+    return {
+        filter: setFilter,
+        limit: setLimit,
+        sort: setSort,
+        get: get,
+        getTotal: getTotal,
+    };
+}
+
 function paginationObject() {
 
     var page = 0;
@@ -5,25 +138,23 @@ function paginationObject() {
     var countPerPage = 10;
     var totalCount = -1;
     var selectElement;
+    var ed = window.eventDispatcher('flightTable');
 
     var configuration = {
         _containerClass: 'pagi-cont',
         _itemClass: 'pagi-item',
         containerElement: 'ul',
         itemElement: 'li',
-        hideInMiddle:  true,
+        hideInMiddle: true,
         itemsPerPage: countPerPage,
     };
 
-    var events = {
-        'onPageChange': [],
-    }
-
     function total(val) {
-        if (!val) {
-            totalCount = val;
-        }
-        pageCount = Math.ceil(val/countPerPage);
+        val = parseInt(val, 10);
+        if (val === totalCount) { return; }
+        totalCount = val;
+        pageCount = Math.ceil(val / countPerPage);
+        updateSelect();
         return totalCount;
     }
 
@@ -63,7 +194,7 @@ function paginationObject() {
         if (selectElement) {
             selectElement.value = pageNumber;
         }
-        fireEvent('onPageChange');
+        ed.fire('onPageChange',  {offset: page * countPerPage});
     }
 
     function getCurrentPage() {
@@ -72,18 +203,6 @@ function paginationObject() {
 
     function itemsPerPage() {
         return configuration.itemsPerPage;
-    }
-
-    function onPageChange(callback) {
-        events['onPageChange'].push(callback);
-    }
-
-    function fireEvent(eventName) {
-        events[eventName].map(function(callback) {
-            if (typeof callback === 'function') {
-                callback();
-            }
-        });
     }
 
     function createAnchor(text, callbackOnClick) {
@@ -100,39 +219,54 @@ function paginationObject() {
     function createSelect() {
         var li = jshp.create('li');
         jshp.addClass(li, configuration._itemClass);
+        jshp.addClass(li, 'select-item');
         selectElement = jshp.create('select');
         jshp.attr(selectElement, 'name', 'pageNumber');
-        jshp.on(selectElement, 'change', function(event) {
+        jshp.on(selectElement, 'change', function (event) {
             event.preventDefault();
             selectPage(event.target.value);
         });
-        Array.apply(null, Array(pageCount)).map(function(_, idx) {
+        Array.apply(null, Array(pageCount)).map(function (_, idx) {
             var optionElement = jshp.create('option');
             jshp.attr(optionElement, 'value', idx);
-            jshp.text(optionElement, idx+1);
+            jshp.text(optionElement, idx + 1);
             jshp.append(optionElement, selectElement);
         });
         jshp.append(selectElement, li);
         return li;
     }
 
+    function updateSelect() {
+        var si = jshp.get('.select-item');
+        if (si.length) {
+            si = si[0];
+            jshp.empty(si);
+            var se = createSelect();
+            jshp.append(se, si);
+            selectPage(0);
+        }
+    }
+
     function render(target) {
-        jshp.empty(target);
+        var row = jshp.create('tr');
+        var cell = jshp.create('td');
+        jshp.attr(cell, 'colspan', '10');
+
         var container = jshp.create(configuration.containerElement);
         jshp.addClass(container, configuration._containerClass);
-        var firstPageItem = createAnchor('<<', function(event) {
+        var firstPageItem = createAnchor('<<', function (event) {
             event.preventDefault();
             firstPage();
         });
-        var lastPageItem = createAnchor('>>', function(event) {
+        var lastPageItem = createAnchor('>>', function (event) {
             event.preventDefault();
             lastPage();
         });
-        var prevPageItem = createAnchor('<', function(event) {
+        var prevPageItem = createAnchor('<', function (event) {
             event.preventDefault();
             prevPage(1);
         });
-        var nextPageItem = createAnchor('>', function(event) {
+        var nextPageItem = createAnchor('>', function (event) {
             event.preventDefault();
             nextPage(1);
         });
@@ -146,7 +280,9 @@ function paginationObject() {
         jshp.append(nextPageItem, container);
         jshp.append(lastPageItem, container);
         //
-        jshp.append(container, target);
+        jshp.append(container, cell);
+        jshp.append(cell, row);
+        jshp.append(row, target)
     }
 
     return {
@@ -157,39 +293,53 @@ function paginationObject() {
         prev: prevPage,
         select: selectPage,
         render: render,
-        onPageChange: onPageChange,
     }
 }
 
-function tableObject(element, config) {
+function tableObject(config) {
     var data = [];
-    var cfg = null;
-    var tfoot = jshp.get('tfoot td')[0];
 
-    var po = paginationObject();
+    var columns = config.columns;
+    var tbody = jshp.get(config.tbody)[0];
+    var thead = jshp.get(config.thead)[0];
+    var tfoot = jshp.get(config.tfoot)[0];
 
-    po.onPageChange(function() {
-        var t = jshp.get('.table-body')[0];
-        jshp.empty(t);
-        var sliceStart = po.current() * po.itemsPerPage();
-        var sliceEnd = sliceStart + po.itemsPerPage();
-        data.slice(sliceStart, sliceEnd).map(function (item) {
-            insertRow(item, t);
-        });
-    });
+    var ed = window.eventDispatcher('flightTable');
+
+    var po = config.pagination;
 
     function init() {
-        cfg = config;
-        jshp.empty(element);
+        jshp.empty(thead);
         var tr = jshp.create('tr');
-        cfg.map(function(column) {
+        columns.map(function (column) {
             var th = jshp.create('th');
-            jshp.text(th, column.title);
+            if (column.sortable) {
+                var link = jshp.create('a');
+                jshp.text(link, column.title);
+                jshp.attr(link, 'href', '#');
+                jshp.on(link, 'click', function(event) {
+                    event.preventDefault();
+                    direction = parseInt(jshp.data(event.target, 'direction')) || -1;
+                    direction *= -1;
+                    ed.fire('onSortingChange', {
+                        type:column.type,
+                        prop: column.target,
+                        direction: direction
+                    });
+                    jshp.data(event.target, 'direction', direction);
+                });
+                jshp.append(link, th);
+            } else {
+                jshp.text(th, column.title);
+            }
+
             jshp.append(th, tr);
         });
         jshp.addClass(tr, 'table-head');
         jshp.append(tr, element);
         initModal();
+        po.total(1);
+        po.render(tfoot);
     }
 
     init();
@@ -270,56 +420,34 @@ function tableObject(element, config) {
         })
     }
 
-    function insertRow(item, element) {
+    function insertRow(item) {
         var tr = jshp.create('tr');
-        for (var i=0; i<cfg.length; i++) {
+        for (var i = 0, len = columns.length; i < len; i++) {
             var td = jshp.create('td');
-            jshp.text(td, getProp(item, cfg[i].target))
-            if (cfg[i].className) {
-              jshp.addClass(td, cfg[i].className)
+            if (typeof columns[i].script === 'function') {
+                var text = columns[i].script(getProp(item, columns[i].target));
+                jshp.text(td, text);
+            } else {
+                jshp.text(td, getProp(item, columns[i].target))
             }
-            for (var attr in cfg[i].attrs) {
-                var attrValue = getProp(item, cfg[i].attrs[attr]);
+            if (columns[i].className) {
+                jshp.addClass(td, columns[i].className)
+            }
+            for (var attr in columns[i].attrs) {
+                var attrValue = getProp(item, columns[i].attrs[attr]);
                 jshp.setAttr(td, attr, attrValue);
             }
             jshp.append(td, tr);
         }
-        jshp.append(tr, element);
+        jshp.append(tr, tbody);
     }
 
-    function getProp(obj, path) {
-        return path.split('.').reduce(function(prev, curr) {
-            return prev ? prev[curr] : undefined;
-        }, obj);
-    }
-
-    function updateTable(newData, element) {
-        data = newData;
-        // reset element
-        jshp.empty(element);
-        po.select(0);
-        // set list of all pages
-        po.total(data.length);
-        // draw footer with pagination
-        po.render(tfoot);
-    }
-
-    function filterData(data, query, fields = []) {
-        return data.filter(function (item) {
-            return item['firstName'].toLowerCase().indexOf(query.toLowerCase()) > -1;
+    function updateTable(newData, total) {
+        jshp.empty(tbody);
+        newData.map(function (item) {
+            insertRow(item);
         });
-    }
-
-    function sortData(data, field) {
-        return data.sort(function (a, b) {
-            if (a[field] > b[field]) {
-                return 1;
-            }
-            if (a[field] < b[field]) {
-                return -1;
-            }
-            return 0;
-        });
+        po.total(total);
     }
 
     return {
@@ -331,76 +459,134 @@ function errorHandler(error) {
     console.error(error);
 }
 
+function getProp(obj, path) {
+    return path.split('.').reduce(function (prev, curr) {
+        return prev ? prev[curr] : undefined;
+    }, obj);
+}
+
+function formatDate(input) {
+    if (!(input instanceof Date)) {
+        input = new Date(input);
+    }
+    function formatWithZero(value) {
+        return value > 9 ? value : '0' + value;
+    }
+    var year = input.getFullYear();
+    var month = formatWithZero(input.getMonth());
+    var day = formatWithZero(input.getDate());
+    var hours = formatWithZero(input.getHours());
+    var minutes = formatWithZero(input.getMinutes());
+    var minutes = formatWithZero(input.getMinutes());
+    var minutes = formatWithZero(input.getMinutes());
+    var seconds = formatWithZero(input.getSeconds());
+    return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+}
+
 jshp.ready(function () {
+    var ds;
     var bounce = null;
+    var ed = window.eventDispatcher('flightTable');
+    var po = paginationObject();
 
-    var table = jshp.get('.table')[0];
-    var tableHeader = jshp.findChildren(table, 'thead')[0];
-    var tableBody = jshp.findChildren(table, '.table-body')[0];
-    var tableConfig = [
-        {
-            title: '#',
-            type: 'number',
-            sortable: true,
-            target: 'id',
-            className: 'bold',
-        }, {
-            title: 'Departure city',
-            type: 'object',
-            target: 'departure.city',
-            className: 'departure',
-            attrs: {id: 'departure.id'},
-        }, {
-            title: 'Departure time',
-            type: 'object',
-            target: 'departure.time',
-        }, {
-            title: 'Arrival city',
-            type: 'object',
-            target: 'arrival.city',
-            className: 'arrival',
-            attrs: {id: 'arrival.id'},
-        }, {
-            title: 'Arrival time',
-            type: 'object',
-            target: 'arrival.time',
-        }, {
-            title: 'Airline',
-            type: 'object',
-            target: 'airline.name'
-      }
-    ];
+    var tableConfig = {
+        table: '.table',
+        thead: '.thead',
+        tbody: '.table-body',
+        tfoot: '.tfoot',
+        pagination: po,
+        columns: [
+            {
+                title: '#',
+                type: 'number',
+                sortable: true,
+                target: 'id',
+                className: 'bold',
+            }, {
+                title: 'Departure city',
+                type: 'string',
+                target: 'departure.city',
+                className: 'departure',
+                attrs: { id: 'departure.id' },
+            }, {
+                title: 'Departure time',
+                type: 'date',
+                target: 'departure.time',
+                script: function(value) {
+                    return formatDate(value);
+                },
+                sortable: true,
+            }, {
+                title: 'Arrival city',
+                type: 'string',
+                target: 'arrival.city',
+                className: 'arrival',
+                attrs: { id: 'arrival.id' },
+            }, {
+                title: 'Arrival time',
+                type: 'date',
+                target: 'arrival.time',
+                script: function(value) {
+                    return formatDate(value);
+                },
+                sortable: true,
+            }, {
+                title: 'Airline',
+                type: 'string',
+                target: 'airline.name'
+            }
+        ],
+        events: {
+            'td.arrival, td.departure': {
+                click: function (event) {
+                    window.location = '//localhost:3000/airports/' + jshp.getAttr(event.target, 'id');
+                }
+            }
+        }
+    };
 
-    var to = tableObject(tableHeader, tableConfig);
+    ed.register('onPageChange', function (data) {
+        to.updateTable(
+            ds.limit(10, data.offset).get(), ds.getTotal()
+        )
+    });
+
+    ed.register('onSortingChange', function(data) {
+        to.updateTable(
+            ds.sort(data.prop, data.direction, data.type).get(), ds.getTotal()
+        )
+    })
+
+    var filterFields = ['departure.city', 'arrival.city', 'airline.name'];
+    var to = tableObject(tableConfig);
 
     jshp.ajaxGet({
         url: '//localhost:3000/flights'
     }, function (data) {
-      to.updateTable(data, tableBody);
-      var elems = jshp.get('td.arrival, td.departure');
-      for (var i = 0; i < elems.length; i++) {
-        var elem = elems[i];
-        jshp.on(elem, 'click', function () {
-          window.location = '//localhost:3000/airports/' + jshp.getAttr(this, 'id');
-        });
-      }
+        ds = dataStore(JSON.parse(data));
+        to.updateTable(ds.get(), ds.getTotal());
+
+        var elems = jshp.get('td.arrival, td.departure');
+        for (var i = 0; i < elems.length; i++) {
+            var elem = elems[i];
+            jshp.on(elem, 'click', function () {
+                window.location = '//localhost:3000/airports/' + jshp.getAttr(this, 'id');
+            });
+        }
     }, errorHandler)
 
-    // event
-
-    // $('.table-query').on('keydown', function() {
-    //     if (bounce) {
-    //         clearTimeout(bounce);
-    //         bounce = null;
-    //     }
-    //     bounce = setTimeout(function() {
-    //         let query = $('.table-query').val();
-    //         bounce = null;
-    //         updateTable(
-    //             sortData(
-    //                 filterData(tableData, query)
-    //             , 'firstName'), $tableBody
-    //         );
-    //     }, 500);
-    // });
+    var queryElement = jshp.get('.table-query')[0];
+    jshp.on(queryElement, 'keydown', function (event) {
+        if (bounce) {
+            clearTimeout(bounce);
+            bounce = null;
+        }
+        bounce = setTimeout(function () {
+            bounce = null;
+            to.updateTable(
+                ds.filter(event.target.value, filterFields).get(),
+                ds.getTotal()
+            );
+        }, 500);
+    });
 });
