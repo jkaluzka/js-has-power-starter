@@ -1,6 +1,6 @@
 /*global affix, selector*/
 
-describe('JavaScriptHasPower - Lesson 2', function() {
+describe('JavaScriptHasPower - Lesson 2 [DOM operations]', function() {
   'use strict';
   beforeEach(function() {
     affix('.element #id-element input[class="awesome"] input[type="coolName"] button[name="btn"]');

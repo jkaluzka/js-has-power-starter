@@ -1,6 +1,6 @@
 /*global affix, selector*/
 
-describe('JavaScriptHasPower - Lesson 1', function() {
+describe('JavaScriptHasPower - Lesson 1 [js essentials]', function() {
   'use strict';
 
   beforeEach(function() {

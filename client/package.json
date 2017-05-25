@@ -5,8 +5,7 @@
   "main": "data.js",
   "license": "MIT",
   "scripts": {
-    "start": "json-server --watch data.js",
-    "test": "jasmine"
+    "start": "json-server --watch data.js"
   },
   "dependencies": {
     "faker": "^4.1.0",
