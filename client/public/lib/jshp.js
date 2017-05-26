@@ -1,18 +1,18 @@
-;(function(jshp, undefined) {
+; (function (jshp, undefined) {
   // Private members
   var doc = document;
 
   // Public methods
-  jshp.get = function(selector) {
+  jshp.get = function (selector) {
     return doc.querySelectorAll(selector);
   };
 
-  jshp.findChildren = function(parent, selector) {
+  jshp.findChildren = function (parent, selector) {
     return parent.querySelectorAll(selector);
   };
 
-  jshp.create = function(tag) {
-    var classes = [];
+  jshp.create = function (tag) {
+    let classes = [];
     if (tag.indexOf('.') > 0) {
       var tagWithClass = tag.split('.');
       tag = tagWithClass[0];
@@ -20,23 +20,23 @@
     }
     var element = doc.createElement(tag);
     if (classes.length) {
-      classes.map(function(cls) {
+      classes.map(function (cls) {
         jshp.addClass(element, cls);
       })
     }
     return element;
   };
 
-  jshp.append = function(element, target) {
+  jshp.append = function (element, target) {
     target.appendChild(element);
   };
 
-  jshp.text = function(element, text) {
+  jshp.text = function (element, text) {
     var t = doc.createTextNode(text);
     jshp.append(t, element);
   };
 
-  jshp.addClass = function(element, className) {
+  jshp.addClass = function (element, className) {
     element.classList.add(className);
   };
 
@@ -48,7 +48,7 @@
     }
   };
 
-  jshp.removeClass = function(element, className) {
+  jshp.removeClass = function (element, className) {
     element.classList.remove(className);
   };
 
@@ -60,7 +60,7 @@
     return element.getAttribute(attrName);
   };
 
-  jshp.attr = function(element, attrName, attrValue) {
+  jshp.attr = function (element, attrName, attrValue) {
     if (typeof attrValue !== 'undefined') {
       jshp.setAttr(element, attrName, attrValue);
     } else {
@@ -68,9 +68,9 @@
     }
   };
 
-  jshp.css = function(element, styleName, newValue) {
+  jshp.css = function (element, styleName, newValue) {
     if (typeof styleName === 'object') {
-      Object.keys(styleName).map(function(name) {
+      Object.keys(styleName).map(function (name) {
         element.style[name] = styleName[name];
       });
       return;
@@ -81,11 +81,18 @@
     return getComputedStyle(element)[styleName]
   };
 
-  jshp.empty = function(element) {
+  jshp.empty = function (element) {
     element.innerHTML = '';
   };
 
-  jshp.ready = function(fn) {
+  jshp.data = function (element, datasetName, datasetValue) {
+    if (typeof datasetValue !== 'undefined') {
+      element.dataset[datasetName] = datasetValue;
+    }
+    return element.dataset[datasetName];
+  }
+
+  jshp.ready = function (fn) {
     if (doc.readyState != 'loading') {
       fn();
     } else {
@@ -98,7 +105,7 @@
     element.addEventListener(event, callback, capture);
   }
 
-  jshp.off = function(element, eventName, eventHandler) {
+  jshp.off = function (element, eventName, eventHandler) {
     element.removeEventListener(eventName, eventHandler);
   }
 
@@ -145,7 +152,7 @@
   };
 
   // support for ajax
-  jshp.ajax = function(options, handleSuccess, handleError, context) {
+  jshp.ajax = function (options, handleSuccess, handleError, context) {
     var opt = {
       async: true
     };
@@ -196,12 +203,12 @@
 
   function top() {
     var s = 'world';
-    return function(name) {
+    return function (name) {
       alert(name + s);
     }
   }
 
-  if (typeof(String.prototype.startsWith) !== 'function') {
+  if (typeof (String.prototype.startsWith) !== 'function') {
     String.prototype.startsWith = function (needle) {
       return this.indexOf(needle) === 0;
     };

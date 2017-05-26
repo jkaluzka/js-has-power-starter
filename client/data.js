@@ -7,7 +7,7 @@ var faker = require('faker')
  * @param {number} min - minimal value to be found, default 1
  * @param {number} max - maximal value to be found, default 10
  */
-function getRandomArbitrary(min=1, max=10) {
+function getRandomArbitrary(min=1, max=9) {
     return Math.round(Math.random() * (max - min) + min);
 }
 
@@ -33,7 +33,7 @@ function generateData () {
     })
   }
 
-  for (id = 1; id <= 10; id++) {
+  for (id = 1; id <= 16; id++) {
     var departure = airports[getRandomArbitrary()];
     departure.time = faker.date.future();
 
