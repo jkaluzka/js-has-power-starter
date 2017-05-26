@@ -106,8 +106,8 @@ p {
     width: 140px;
     height: 40px;
     font-size: 26px;
-    background-color: greenyellow;
-    color: blue;
+    background-color: #007069;
+    color: #CCCCCC;
     cursor: pointer;
 }
 
@@ -121,7 +121,7 @@ p {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgb(0, 0, 0);
+    background-color: #000000;
     background-color: rgba(0, 0, 0, 0.4);
 }
 
@@ -144,7 +144,7 @@ p {
 
 .close:hover,
 .close:focus {
-    color: black;
+    color: #000000;
     text-decoration: none;
     cursor: pointer;
 }
@@ -159,6 +159,7 @@ p {
 
 #modal ul li {
     display: flex;
+    padding: 5px 0;
 }
 
 #modal ul li select,
@@ -174,6 +175,7 @@ p {
     background-color: aquamarine;
     font-size: 16px;
     padding: 0 5px;
+    cursor: pointer;
 }
 
 #modal ul li label {
@@ -185,6 +187,10 @@ p {
     margin-top: 20px;
     font-size: 20px;
     background-color: #007069;
-    color: black;
+    color: #000000;
     cursor: pointer;
+}
+
+#modal .error {
+    border: 2px solid #FF0000;
 }

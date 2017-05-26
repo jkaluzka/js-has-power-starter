@@ -46,7 +46,7 @@ function dataStore() {
     };
 
     var sortOptions = {
-        property: '',
+        property: 'id',
         direction: 1,
         type: 'number'
     };
@@ -401,20 +401,43 @@ function tableObject(config) {
                 event.stopPropagation();
                 event.preventDefault();
                 var elem = jshp.get('input[name="' + jshp.getAttr(this, 'data-for') + '"]')[0];
-                elem.value = new Date().toISOString();
+                elem.value = formatDate(new Date().toISOString());
             });
         });
 
         jshp.addListener(jshp.get('#modal .submit')[0], 'click', function (event) {
+            Array.prototype.forEach.call(jshp.get('#modal .error'), function (elem) {
+              jshp.removeClass(elem, 'error');
+            });
             event.stopPropagation();
             event.preventDefault();
             var airline = _getSelectedValue('select[name="airline"]', _airlines);
+            var departure = Object.assign({}, _getSelectedValue('select[name="dept_city"]', _airports));
+            var arrival = Object.assign({}, _getSelectedValue('select[name="arrival_city"]', _airports));
+            var error = false;
+            if (departure.id === arrival.id) {
+              jshp.addClass(jshp.get('select[name="dept_city"]')[0], 'error');
+              jshp.addClass(jshp.get('select[name="arrival_city"]')[0], 'error');
+              error = true;
+            }
 
-            var departure = _getSelectedValue('select[name="dept_city"]', _airports);
-            departure.time = jshp.get('input[name="dept_time"]')[0].value
+            var dept_time = jshp.get('input[name="dept_time"]')[0];
+            if (!dept_time.value) {
+              jshp.addClass(dept_time, 'error');
+              error = true;
+            } else {
+              departure.time = dept_time.value;
+            }
 
-            var arrival = _getSelectedValue('select[name="arrival_city"]', _airports);
-            arrival.time = jshp.get('input[name="arrival_time"]')[0].value
+            var arrival_time = jshp.get('input[name="arrival_time"]')[0];
+            if (!arrival_time.value) {
+              jshp.addClass(arrival_time, 'error');
+              error = true;
+            } else {
+              arrival.time = arrival_time.value;
+            }
+
+            if (error) { return !error; }
 
             var payload = {airline: airline, departure: departure, arrival: arrival}
             jshp.ajaxPost({url: '/flights', data: payload}, function (response) {
@@ -422,14 +445,14 @@ function tableObject(config) {
                 ds.push(response);
                 updateTable(ds.get(), ds.getTotal());
             }, errorHandler);
-        })
+        });
 
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function(event) {
             if (event.target === modal) {
                 modal.style.display = "none";
             }
-        }
+        };
     }
 
     function _getSelectedValue(name, data) {
@@ -506,14 +529,11 @@ function formatDate(input) {
     var day = formatWithZero(input.getDate());
     var hours = formatWithZero(input.getHours());
     var minutes = formatWithZero(input.getMinutes());
-    var minutes = formatWithZero(input.getMinutes());
-    var minutes = formatWithZero(input.getMinutes());
     var seconds = formatWithZero(input.getSeconds());
     return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 }
 
 jshp.ready(function () {
-    var ds;
     var bounce = null;
     var ed = window.eventDispatcher('flightTable');
     var ds = window.ds;

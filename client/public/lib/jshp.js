@@ -12,7 +12,7 @@
   };
 
   jshp.create = function (tag) {
-    let classes = [];
+    var classes = [];
     if (tag.indexOf('.') > 0) {
       var tagWithClass = tag.split('.');
       tag = tagWithClass[0];
@@ -199,13 +199,6 @@
   jshp.ajaxPost = function (options, handleSuccess, handleError, context) {
     var opts = Object.assign({}, options, {method: 'POST'});
     jshp.ajax(opts, handleSuccess, handleError, context);
-  }
-
-  function top() {
-    var s = 'world';
-    return function (name) {
-      alert(name + s);
-    }
   }
 
   if (typeof (String.prototype.startsWith) !== 'function') {
