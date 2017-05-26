@@ -1,29 +1,34 @@
 describe("JavaScriptHasPower - lesson 0 [init]", function() {
   'use strict';
 
+  var a;
+  var foo;
+
   beforeEach(function() {
-    affix(".element $element");
+    foo = 1;
   });
 
   afterEach(function() {
-    $('.element').remove();
+    foo = 0;
   });
 
-  it("should not return element", function() {
-    var selector = '.no-item';
-    var el = jshp.get(selector);
-
-    expect(el.length).toBe(0);
+  it("should not fail", function() {
+    expect(true).toBe(true);
   });
 
-  it("should return element", function() {
-    var selector = '.element';
-    var expected = $.makeArray($(selector));
-    var el = jshp.get(selector);
+  it("expect a to be true", function() {
+    expect(a).toBe(undefined);
+    a = true;
+    expect(a).toBe(true);
+  });
 
-    expect(el.length).toBe(1);
-    expect(el[0] instanceof HTMLElement).toBe(true);
-    expect(el[0]).toBe(expected[0]);
+  it("sets the initial value of foo before specs run", function() {
+    expect(foo).toEqual(1);
+    foo += 1;
+  });
+
+  it("reset foo between specs", function() {
+    expect(foo).toEqual(1);
   });
 
 });

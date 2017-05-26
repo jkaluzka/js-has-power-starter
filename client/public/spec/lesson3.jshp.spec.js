@@ -65,7 +65,6 @@ describe('JavaScriptHasPower - lesson 3 [ajax]', function() {
     var context = {javaScript: 'has power'};
 
     var onSuccess = function(data, status, xhr) {
-      data = JSON.parse(data);
       expect(status).toBe(200);
       expect(data.response).toBe('data');
       expect(this).toBe(context);
@@ -96,8 +95,8 @@ describe('JavaScriptHasPower - lesson 3 [ajax]', function() {
     expect(request.method).toBe('POST');
     expect(request.url).toBe("/jshp/index");
     var d = request.data();
-    expect(d.id[0]).toEqual('123');
-    expect(d.firstName[0]).toEqual('Batman');
+    expect(d.id).toEqual('123');
+    expect(d.firstName).toEqual('Batman');
     expect(this.onSuccessSpy).toHaveBeenCalled();
     expect(this.onFailureSpy).not.toHaveBeenCalled();
   });

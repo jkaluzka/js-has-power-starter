@@ -12,7 +12,7 @@
   };
 
   jshp.create = function(tag) {
-    let classes = [];
+    var classes = [];
     if (tag.indexOf('.') > 0) {
       var tagWithClass = tag.split('.');
       tag = tagWithClass[0];
@@ -160,8 +160,8 @@
     request.onreadystatechange = handleData;
     request.open(options.method, options.url, options.async);
     if (options.method.toUpperCase() === 'POST') {
-      request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-      request.send(objectToQueryString(options.data || {}));
+      request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+      request.send(JSON.stringify(options.data));
     } else {
       request.send();
     }
@@ -170,9 +170,9 @@
       var self = context || this;
       if (request.readyState === request.DONE) {
         var data = request.responseText;
-        if (request.status === 200) {
+        if (request.status >= 200 && request.status < 400) {
           if (typeof handleSuccess === 'function') {
-            handleSuccess.call(self, data, request.status, request);
+            handleSuccess.call(self, JSON.parse(data), request.status, request);
           }
         } else {
           if (typeof handleError === 'function') {
@@ -199,10 +199,6 @@
     return function(name) {
       alert(name + s);
     }
-  }
-
-  function objectToQueryString(obj) {
-    return Object.keys(obj).map(function(k) {return k + '=' + encodeURIComponent(obj[k])}).join('&');
   }
 
   if (typeof(String.prototype.startsWith) !== 'function') {
