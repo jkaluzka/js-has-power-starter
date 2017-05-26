@@ -33,7 +33,7 @@ function generateData () {
     })
   }
 
-  for (id = 1; id <= 10; id++) {
+  for (id = 1; id <= 16; id++) {
     var departure = airports[getRandomArbitrary()];
     departure.time = faker.date.future();
 

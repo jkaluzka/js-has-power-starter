@@ -30,10 +30,10 @@ function eventDispatcher() {
 
 window.eventDispatcher = eventDispatcher();
 
-function dataStore(data) {
+function dataStore() {
     var store = {
         totalCount: 0,
-        primary: data,
+        primary: [],
         cache: []
     };
     var filterOptions = {
@@ -45,8 +45,23 @@ function dataStore(data) {
         offset: 0
     };
 
+    var sortOptions = {
+        property: '',
+        direction: 1,
+        type: 'number'
+    };
+
+    function set(data) {
+        store.primary = data;
+    }
+
+    function push(item) {
+        store.primary.push(item);
+        generateCache();
+    }
+
     function setFilter(query, properties) {
-        newFilterOptions = {
+        var newFilterOptions = {
             query: query,
             properties: properties
         };
@@ -55,7 +70,7 @@ function dataStore(data) {
     }
 
     function setLimit(limit, offset) {
-        newLimitOptions = {
+        var newLimitOptions = {
             limit: limit,
             offset: offset
         };
@@ -84,11 +99,21 @@ function dataStore(data) {
     function setSort(property, direction, type) {
         type = type || 'string';
         direction = direction || 1;
-        var sorter = getSorter(type);
-        store.cache = store.primary.sort(function (a, b) {
-            return sorter(getProp(a, property), getProp(b, property)) * direction;
-        });
+        var newSortOptions = {
+            property: property,
+            direction: direction,
+            type: type
+        }
+        sortOptions = Object.assign({}, sortOptions, newSortOptions);
+        generateCache();
         return this;
+    }
+
+    function generateCache() {
+        var sorter = getSorter(sortOptions.type);
+        store.cache = store.primary.sort(function (a, b) {
+            return sorter(getProp(a, sortOptions.property), getProp(b, sortOptions.property)) * sortOptions.direction;
+        });
     }
 
     function get() {
@@ -127,9 +152,13 @@ function dataStore(data) {
         limit: setLimit,
         sort: setSort,
         get: get,
+        set: set,
+        push: push,
         getTotal: getTotal,
     };
 }
+
+window.ds = dataStore();
 
 function paginationObject() {
 
@@ -336,7 +365,7 @@ function tableObject(config) {
             jshp.append(th, tr);
         });
         jshp.addClass(tr, 'table-head');
-        jshp.append(tr, element);
+        jshp.append(tr, thead);
         initModal();
         po.total(1);
         po.render(tfoot);
@@ -376,7 +405,7 @@ function tableObject(config) {
             });
         });
 
-        jshp.addListener(jshp.get('#modal .submit')[0], 'click', function () {
+        jshp.addListener(jshp.get('#modal .submit')[0], 'click', function (event) {
             event.stopPropagation();
             event.preventDefault();
             var airline = _getSelectedValue('select[name="airline"]', _airlines);
@@ -390,8 +419,8 @@ function tableObject(config) {
             var payload = {airline: airline, departure: departure, arrival: arrival}
             jshp.ajaxPost({url: '/flights', data: payload}, function (response) {
                 jshp.css(modal, 'display', 'none');
-                data.push(response);
-                updateTable(data, jshp.findChildren(jshp.get('.table')[0], '.table-body')[0]);
+                ds.push(response);
+                updateTable(ds.get(), ds.getTotal());
             }, errorHandler);
         })
 
@@ -487,6 +516,7 @@ jshp.ready(function () {
     var ds;
     var bounce = null;
     var ed = window.eventDispatcher('flightTable');
+    var ds = window.ds;
     var po = paginationObject();
 
     var tableConfig = {
@@ -563,7 +593,7 @@ jshp.ready(function () {
     jshp.ajaxGet({
         url: '//localhost:3000/flights'
     }, function (data) {
-        ds = dataStore(JSON.parse(data));
+        ds.set(data);
         to.updateTable(ds.get(), ds.getTotal());
 
         var elems = jshp.get('td.arrival, td.departure');
