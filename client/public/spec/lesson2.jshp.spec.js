@@ -10,6 +10,69 @@ describe('JavaScriptHasPower - Lesson 2 [DOM operations]', function() {
     $('.element').remove();
   });
 
+  it('should add css class to an element', function() {
+    var selector = '.element';
+    var className = 'new-class-name';
+    var expected = $.makeArray($(selector).addClass(className))[0];
+
+    var el = jshp.get(selector)[0];
+    jshp.addClass(el, className);
+
+    expect(el instanceof HTMLElement).toBe(true);
+    expect(el).toBe(expected);
+    expect(el.classList).toBe(expected.classList)
+  });
+
+  it('should toggle css class on an element when class is not present', function() {
+    var selector = '.element';
+    var className = 'toggle-class-name';
+    var expected = $(selector);
+
+    var el = jshp.get(selector)[0];
+    jshp.toggleClass(el, className);
+
+    expect(el instanceof HTMLElement).toBe(true);
+    expect(expected.hasClass(className)).toBe(true);
+  });
+
+  it('should toggle css class on an element when class is present', function() {
+    var selector = '.element';
+    var className = 'toggle-class-name';
+    var expected = $(selector);
+
+    var el = jshp.get(selector)[0];
+    jshp.addClass(el, className);
+    jshp.toggleClass(el, className);
+
+    expect(el instanceof HTMLElement).toBe(true);
+    expect(expected.hasClass(className)).toBe(false);
+  });
+
+  it('should remove a css class of an element', function() {
+    var selector = '.element';
+    var className = 'remove-this-class-name';
+    var expected = $(selector);
+
+    var el = jshp.get(selector)[0];
+    jshp.addClass(el, className);
+    jshp.removeClass(el, className);
+
+    expect(el instanceof HTMLElement).toBe(true);
+    expect(expected.hasClass(className)).toBe(false);
+  });
+
+  it('should not generate an error when removing non existing css class of an element', function() {
+    var selector = '.element';
+    var className = 'remove-this-class-name';
+    var expected = $(selector);
+
+    var el = jshp.get(selector)[0];
+    jshp.removeClass(el, className);
+
+    expect(el instanceof HTMLElement).toBe(true);
+    expect(expected.hasClass(className)).toBe(false);
+  });
+
   it('should set css property on an element', function() {
     var selector = '.element';
     var expected = $.makeArray($(selector))
